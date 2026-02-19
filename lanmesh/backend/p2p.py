@@ -9,7 +9,7 @@ from typing import Dict, Any
 # It runs on port 8000 (fixed for this MVP, effectively acting as the "Serverless" node).
 
 app = FastAPI()
-bridge_instance = None # Injected from main.py
+bridge_instance = None  # Injected from main.py
 
 class MessageModel(BaseModel):
     from_uuid: str
@@ -18,6 +18,16 @@ class MessageModel(BaseModel):
 class SignalModel(BaseModel):
     from_uuid: str
     signal: Dict[str, Any]
+
+class FileModel(BaseModel):
+    from_uuid: str
+    filename: str
+    data_b64: str          # base64-encoded file content
+    size: int              # original file size in bytes
+
+class TypingModel(BaseModel):
+    from_uuid: str
+    is_typing: bool
 
 @app.post("/internal/message")
 async def receive_message(msg: MessageModel):
@@ -29,6 +39,20 @@ async def receive_message(msg: MessageModel):
 async def receive_signal(sig: SignalModel):
     if bridge_instance:
         bridge_instance.handle_incoming_signal(sig.from_uuid, sig.signal)
+    return {"status": "ok"}
+
+@app.post("/internal/file")
+async def receive_file(file: FileModel):
+    if bridge_instance:
+        bridge_instance.handle_incoming_file(
+            file.from_uuid, file.filename, file.data_b64, file.size
+        )
+    return {"status": "ok"}
+
+@app.post("/internal/typing")
+async def receive_typing(typing: TypingModel):
+    if bridge_instance:
+        bridge_instance.handle_incoming_typing(typing.from_uuid, typing.is_typing)
     return {"status": "ok"}
 
 def start_p2p_listener(bridge, port=8000):

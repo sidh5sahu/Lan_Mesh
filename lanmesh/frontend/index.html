@@ -10,6 +10,7 @@
 </head>
 
 <body>
+    <!-- Login Overlay -->
     <div id="login-overlay">
         <div class="login-modal">
             <div class="brand" style="justify-content: center; margin-bottom: 1rem;">
@@ -26,6 +27,7 @@
             <button id="btn-login">Join Local Network</button>
         </div>
     </div>
+
     <div id="app">
         <!-- Sidebar -->
         <aside>
@@ -49,16 +51,27 @@
 
             <div class="section-title">Online Peers</div>
             <div class="peer-list" id="peer-list">
-                <!-- Peers will be injected here via JS -->
-                <!-- Example:
-                <div class="peer-item">
-                    <div class="avatar">JD</div>
-                    <div class="peer-data">
-                        <div class="peer-name">John Doe</div>
-                        <div class="status-dot"></div>
-                    </div>
+                <!-- Peers injected via JS -->
+            </div>
+
+            <!-- Network Stats -->
+            <div class="network-stats" id="network-stats">
+                <div class="stat-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                    <span id="peer-count">0 peers</span>
                 </div>
-                -->
+                <div class="stat-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 11a9 9 0 0 1 9 9" />
+                        <path d="M4 4a16 16 0 0 1 16 16" />
+                        <circle cx="5" cy="19" r="1" />
+                    </svg>
+                    <span id="connection-status">Connected</span>
+                </div>
             </div>
         </aside>
 
@@ -67,8 +80,9 @@
             <header>
                 <div class="chat-header-info">
                     <h2 id="chat-title">Select a peer to chat</h2>
+                    <span class="typing-label" id="typing-label"></span>
                 </div>
-                <div class="chat-actions" style="display: flex; gap: 1rem;">
+                <div class="chat-actions" style="display: flex; gap: 0.75rem;">
                     <button class="action-btn" id="btn-call" title="Voice Call">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2">
@@ -93,15 +107,45 @@
                 </div>
             </header>
 
+            <!-- Drop Zone -->
+            <div id="drop-overlay" class="drop-overlay">
+                <div class="drop-content">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <p>Drop files here to send</p>
+                </div>
+            </div>
+
             <div id="chat-area">
-                <div class="message received">
-                    Welcome to LanMesh. All messages are peer-to-peer and encrypted.
+                <div class="message received system-msg">
+                    <div class="msg-content">Welcome to LanMesh. All messages are peer-to-peer and encrypted.</div>
                 </div>
             </div>
 
             <div class="input-area">
+                <button class="emoji-btn" id="btn-emoji" title="Emoji">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                        <line x1="9" y1="9" x2="9.01" y2="9"/>
+                        <line x1="15" y1="9" x2="15.01" y2="9"/>
+                    </svg>
+                </button>
                 <input type="text" id="msg-input" placeholder="Type a message..." disabled>
-                <button class="send-btn" id="btn-send" disabled>Send</button>
+                <button class="send-btn" id="btn-send" disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"/>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Emoji Picker -->
+            <div id="emoji-picker" class="emoji-picker">
+                <div class="emoji-grid" id="emoji-grid"></div>
             </div>
 
             <!-- Video Call Overlay -->
@@ -113,6 +157,14 @@
                     </div>
                 </div>
                 <div class="video-controls">
+                    <button class="control-btn" id="btn-mute-call" title="Toggle Mute">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                            <line x1="12" y1="19" x2="12" y2="23"/>
+                            <line x1="8" y1="23" x2="16" y2="23"/>
+                        </svg>
+                    </button>
                     <button class="control-btn danger" id="btn-hangup">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2">
@@ -124,6 +176,13 @@
             </div>
         </main>
     </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Hidden file input -->
+    <input type="file" id="file-input-hidden" style="display:none">
+
     <script src="app.js"></script>
 </body>
 
